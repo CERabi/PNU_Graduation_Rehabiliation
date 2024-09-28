@@ -240,7 +240,7 @@ void app_main()
             sleep_time += 1;    //1000ms(1초)마다 한 번씩 증가.
             if(sleep_time > 180){ //180초 후 deep sleep 모드로 전환. reset을 통해 깨어나야함.
                 ESP_LOGI(TAG, "Good night");
-                esp_deep_sleep_start();
+                //esp_deep_sleep_start();
             }
         }
 
