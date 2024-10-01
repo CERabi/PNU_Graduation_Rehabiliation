@@ -203,7 +203,7 @@ async def get_IMU(devices : list, gettime : int):
     
     # 장치마다 client 클래스 생성
     for name in devices:
-        clients.append(BleakClient(device_name_to_addr[name], disconnected_callback=on_disconnect))
+        clients.append(BleakClient(device_name_to_addr[name], disconnected_callback=on_disconnect, timeout = 30))
     
     try:
         # 장치 차례로 연결 시도(동시에 연결하게도 가능할 듯?)
