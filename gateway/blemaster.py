@@ -419,7 +419,7 @@ async def run():
 
 if __name__ == "__main__":
     # 센서 목록 받아오기
-    with open("devices.txt",'r') as file:
+    with open("gateway/devices.txt",'r') as file:
         device_list = dict([dev.strip().split() for dev in file])
         device_name_to_addr = {v:k for k,v in device_list.items()}
         device_num = len(device_list)
