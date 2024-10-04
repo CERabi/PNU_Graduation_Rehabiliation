@@ -341,7 +341,7 @@ async def run():
             
             # 센싱 수행 완료, 결과저장
             print('센싱 기록 결과 저장')
-            await save_result("sensor"+datetime.today().strftime("%X-%x")+".csv", devices)
+            await save_result("sensor.csv", devices)
             
 
 
@@ -430,8 +430,7 @@ if __name__ == "__main__":
         loop = asyncio.get_event_loop()
         loop.run_until_complete(run())
 
-    except KeyboardInterrupt: # SIGINT를 통해 작업을 종료하려는 경우 여기서 catch됨.
-        print("^C")
+    except Exception: # 문제 생기는 경우
         emer_save()
     finally:
         print("종료됨")
