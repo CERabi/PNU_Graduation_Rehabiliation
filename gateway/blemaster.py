@@ -341,7 +341,8 @@ async def run():
             
             # 센싱 수행 완료, 결과저장
             print('센싱 기록 결과 저장')
-            await save_result("sensor.csv", devices)
+            timestr = datetime.today().strftime("%Y%m%d_%H%M%S")
+            await save_result(timestr+"sensor.csv", devices)
             
 
 
