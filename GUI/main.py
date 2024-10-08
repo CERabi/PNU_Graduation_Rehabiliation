@@ -1,9 +1,15 @@
+# 실행:
+# cd GUI
+# uvicorn main:app --reload
+
+# 서버관련 패키지
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
 import asyncio
 
+# 서버생성, CROS관련 설정
 app = FastAPI()
-
 origins = [
 	"*" # 모든 출처? 허용
 ]
@@ -17,18 +23,9 @@ app.add_middleware(
 )
 
 
-async def get_rand():
-    import random as rd
-    rn = rd.randint(1,10)
-    print("num is ",rn)
-    await asyncio.sleep(rn)
-    return rn
 
 @app.get("/")
 async def root():
-    num = await get_rand()
-    return {"message":"hell o'h"+str(num)}
+    return {"message":"Usage: /devices"}
 
 
-#실행:uvicorn main:app --reload
-#cd GUI로 열어서

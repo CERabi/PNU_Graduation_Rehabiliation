@@ -6,7 +6,7 @@
     <title>Document</title>
 </head>
 <body>
-    <h1 id="title">ayaya</h1>
+    <h1 id="title">[]</h1>
     <script>
         window.addEventListener("load",start, false)
         function start(){
@@ -14,8 +14,8 @@
             xhr.onreadystatechange = function(){
                 if(this.readyState == 4 && this.status == 200){
                     //alert(this.responseText)
-                    let data = JSON.parse(this.responseText)
-                    document.getElementById("title").innerText= data.message;
+                    //let data = JSON.parse(this.responseText)
+                    document.getElementById("title").innerText= this.responseText
                 }
             }
             xhr.open("GET","http://localhost:8000",true);
