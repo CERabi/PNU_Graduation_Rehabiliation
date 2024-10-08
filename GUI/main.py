@@ -4,6 +4,7 @@
 
 # 서버관련 패키지
 from fastapi import FastAPI
+from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 
 import asyncio
@@ -18,9 +19,17 @@ app.add_middleware(
     allow_origins=origins,
     #allow_origin_regex="http://127\.0\.0\.1(:\d+)?",
     allow_credentials=True,
-    allow_methods=["GET"],
+    allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# 클라이언트로부터 센서 정보 받을 때 사용할 구조
+class DeviceInfo(BaseModel):
+    name: str
+    namelist: list
+
+
+
 
 # 예외처리 쉽게하려고 만듬
 # 예외 발생할 만한 곳에 때려박음
@@ -57,6 +66,7 @@ async def devices():
         return return_error("/devices", e)
     
 # 장치 사용가능 여부 scan
-@app.get("/scan")
-async def scan():
-    return 0;
+@app.post("/scan")
+async def scan(item : DeviceInfo):
+    print(item)
+    return "success="+item.namelist[1];

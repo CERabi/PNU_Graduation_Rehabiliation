@@ -8,7 +8,7 @@
 <body>
     <h1 id="title">[]</h1>
     <script>
-        window.addEventListener("load",start, false)
+        window.addEventListener("load",post, false)
         function start(){
             let xhr = new XMLHttpRequest()
             xhr.onreadystatechange = function(){
@@ -20,6 +20,22 @@
             }
             xhr.open("GET","http://localhost:8000/devices",true);
             xhr.send();
+        }
+        function post(){
+            let xhr = new XMLHttpRequest()
+            xhr.onreadystatechange = function(){
+                if(this.readyState == 4 && this.status == 200){
+                    //alert(this.responseText)
+                    //let data = JSON.parse(this.responseText)
+                    document.getElementById("title").innerText= this.responseText
+                }
+            }
+            let some = {name:"posttest",
+                        namelist:["X","Q","C"]
+            }
+            xhr.open("POST","http://localhost:8000/scan",true);
+            xhr.setRequestHeader('Content-type', 'application/json');
+            xhr.send(JSON.stringify(some));
         }
     </script>
 </body>
