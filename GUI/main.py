@@ -7,7 +7,12 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 
+# BLE, 비동기
 import asyncio
+from bleak import BleakClient, BleakScanner
+import blecode as blecode
+
+import traceback
 
 # 서버생성, CROS관련 설정
 app = FastAPI()
@@ -25,8 +30,7 @@ app.add_middleware(
 
 # 클라이언트로부터 센서 정보 받을 때 사용할 구조
 class DeviceInfo(BaseModel):
-    name: str
-    namelist: list
+    dev_list : list
 
 
 
@@ -35,9 +39,17 @@ class DeviceInfo(BaseModel):
 # 예외 발생할 만한 곳에 때려박음
 # 예외 발생시 정보를 클라이언트에게 넘김
 def return_error(tag, e):
+    traceback.print_exc()
     print("Except:\t", e)
     return {"type"      : "exception",
             "message"   : "["+tag+"]"+str(e)}
+
+# 서버가 클라이언트에게 메시지 보낼 때(예외가 아닌 모든 경우:연결 끊어짐 등등..)
+def return_message(tag, msg):
+    return {"type"      : "message",
+            "message"   : "["+tag+"]"+msg}
+
+
 
 
 # 이제부터 클라이언트 요청 처리하는 파트
@@ -68,5 +80,11 @@ async def devices():
 # 장치 사용가능 여부 scan
 @app.post("/scan")
 async def scan(item : DeviceInfo):
-    print(item)
-    return "success="+item.namelist[1];
+    print(item.dev_list)
+    try:
+        dev_online = await blecode.scan_device(item.dev_list)
+        return {"type"      :"data",
+                "dev_online": dev_online}
+    
+    except Exception as e:
+        return return_error("/scan", e)
