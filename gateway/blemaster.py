@@ -431,7 +431,9 @@ if __name__ == "__main__":
         loop = asyncio.get_event_loop()
         loop.run_until_complete(run())
 
-    except Exception: # 문제 생기는 경우
+    except Exception as e: # 문제 생기는 경우
+        print("비동기 loop exception")
+        print(e)
         emer_save()
     finally:
         print("종료됨")
