@@ -12,6 +12,7 @@ import numpy as np
 # 머신러닝 관련
 from sklearn.svm import SVC
 from sklearn.preprocessing import StandardScaler
+import tensorflow as tf
 
 
 #import warnings # 아오 시끄러워
@@ -36,6 +37,7 @@ frames = []                                 # 전체 데이터, 이후에 CSV파
 frames_temp = defaultdict(lambda:[])        # 임시로, 각 timestamp 별 센싱 데이터를 저장할 공간. 가득 차면 정렬하여 frames에 붙인다.
 curr_frame_dev_num = defaultdict(lambda:0)  # frames_temp에서 timestamp 마다 센싱 데이터가 몇 개 쌓였는지 체크
 max_frame_dev_num = 0                       # frames_temp의 timestamp마다 최대 몇 개의 데이터가 쌓일 수 있는지. 즉 데이터를 얻고 있는 총 센서 수를 뜻함.
+sequence = np.array([])                     # 한 sequence(200개 frame)을 담기위한 변수
 
 # Critical Section 지킴이
 lock = asyncio.Lock()
@@ -44,6 +46,7 @@ lock = asyncio.Lock()
 do_predict = False
 
 # 머신러닝 모델
+modelstyle = "None"
 model = None
 scaler = None
 
@@ -96,6 +99,10 @@ async def make_frame(data):
     temp.extend(devdata)
 
     global frames
+    global model
+    global modelstyle
+    global scaler
+    global sequence
 
     # Critical section lock
     await lock.acquire()
@@ -114,12 +121,26 @@ async def make_frame(data):
 
             # 머신러닝 추론 수행
             if do_predict:
-                #print(frame)
-                inp = np.array(frame[1:])
-                res = model.predict(scaler.transform(inp.reshape(1,-1)))
-                #print(res)
-                print("{:.2f}s|".format(devtime/1000), end="")
-                print("True" if res[0]==1 else "False")
+                if modelstyle == "svm":
+                    #print(frame)
+                    inp = np.array(frame[1:])
+                    res = model.predict(scaler.transform(inp.reshape(1,-1)))
+                    #print(res)
+                    print("{:.2f}s|".format(devtime/1000), end="")
+                    print("True" if res[0]==1 else "False")
+                elif modelstyle == "lstm":
+                    inp = np.array(frame[1:])
+                    sequence = np.append(sequence, inp) # 가장 앞은 ms임
+                    if len(sequence) == len(inp) * 200: #200개의 프레임이 모인다면...
+                        print("now")
+                        std = scaler.transform(sequence.reshape(-1,len(inp)))
+                        res = model.predict(std.reshape(-1,200,len(inp)))
+                        print(res)
+                        print(res.argmax(axis=-1))
+
+                        sequence = np.array([]) # 비우기
+
+                    
             
     finally:
         # lock 해제
@@ -349,23 +370,45 @@ async def run():
         # 추론
         elif command == "predict":
             # 머신러닝을 통해 생성된 모델 불러오기
-            print("불러올 모델의 파일 이름을 입력")
-            modelname = input("?>")
 
+            global modelstyle
             global model
             global scaler
-            sensor_num = 0
 
+            #타입
+            print("학습 모델 타입? (1:svm, 2:lstm)")
+            modeltype = input("?>")
+            if modeltype not in ["svm","lstm"]:
+                print("잘못됨!")
+                continue
+            modelstyle = modeltype
+
+            #모델
+            print("불러올 모델의 파일 이름을 입력")
+            modelname = input("?>")
             try:
-                with open(modelname, 'rb') as file:
-                    m = pickle.load(file)
-                    model = m[0]
-                    scaler = m[1]
-                    sensor_num = m[2] // 6
+                if modelstyle == "svm":
+                    with open(modelname, 'rb') as file:
+                        model = pickle.load(file)
+                elif modelstyle == "lstm":
+                    model = tf.keras.models.load_model(modelname)
             except Exception as e:
                 print("모델을 불러오는 과정에서 문제가 발생했습니다.")
                 print(e)
                 continue
+            
+            # scaler
+            print("불러올 모델 scaler의 파일 이름을 입력")
+            modelscalername = input("?>")
+            try:
+                with open(modelscalername, 'rb') as file:
+                    scaler = pickle.load(file)
+            except Exception as e:
+                print("모델 scaler를 불러오는 과정에서 문제가 발생했습니다.")
+                print(e)
+                continue
+
+            sensor_num = len(scaler.mean_) // 6
 
             # 추론에 필요한 정확한 센서의 수 알림
             print("추론에 필요한 센서의 수 : ", sensor_num)
