@@ -6,7 +6,7 @@
     <title>Document</title>
 </head>
 <body>
-    <h1 id="title">[]</h1>
+    <h3 id="title">[]</h3>
     <script>
         window.addEventListener("load",post, false)
         function start(){
@@ -31,9 +31,11 @@
                 }
             }
             let some = {
-                dev_list : ['7C:DF:A1:EA:7C:4E','7C:DF:A1:EA:45:F2','7C:DF:A1:EA:42:F6','7C:DF:A1:EA:60:AE']
+                dev_list : ['7C:DF:A1:EA:7C:4E','7C:DF:A1:EA:45:F2','7C:DF:A1:EA:42:F6']
             }
-            xhr.open("POST","http://localhost:8000/scan",true);
+            //,'7C:DF:A1:EA:45:F2','7C:DF:A1:EA:42:F6','7C:DF:A1:EA:60:AE'
+
+            xhr.open("POST","http://localhost:8000/predict_start",true);
             xhr.setRequestHeader('Content-type', 'application/json');
             xhr.send(JSON.stringify(some));
         }
