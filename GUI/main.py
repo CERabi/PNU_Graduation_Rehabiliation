@@ -109,11 +109,11 @@ async def predict_get():
 
         # ready 인 경우 -- 얻어갈 게 없음..
         if blestatus == "ready":
-            return return_message("/predict_get","predict_ready first")
+            return return_message("/predict_get","predict_start이 시작되지 않음")
         # disconnected인 경우 -- 문제 발생해서 미리 알림
         elif blestatus == "disconnected":
             return return_message("/predict_get","어떤 센서가 갑자기 끊어짐;;")
-        # on 상태인 경우 -- 추론 결과 설파
+        # on 상태인 경우 -- 추론 결과 리턴
         elif blestatus == "on":
             return {"type"      :"data",
                     "dev_online": blecode.predict_result}
