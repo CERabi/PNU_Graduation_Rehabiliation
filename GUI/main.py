@@ -94,9 +94,9 @@ async def scan(item : DeviceInfo):
 @app.post("/predict_start")
 async def predict_start(item : DeviceInfo):
     try:
-        await blecode.get_IMU(item.dev_list, 30)
+        await blecode.get_IMU(item.dev_list, 30, "neck")
         return {"type"      :"message",
-                "message"   :"자세 추론?이 끝남"}
+                "message"   :"자세 추론이 끝남"}
     
     except Exception as e:
         return return_error("/predict_start", e)

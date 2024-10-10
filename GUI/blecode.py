@@ -8,8 +8,12 @@ from bleak import BleakClient, BleakScanner
 # 데이터 처리
 import struct
 from collections import defaultdict
-import csv
 import numpy as np
+import pickle 
+# 머신러닝 추론
+from sklearn.svm import SVC
+from sklearn.preprocessing import StandardScaler
+import tensorflow as tf
 
 # -------- 변수들 ----------#
 
@@ -26,9 +30,15 @@ frames = []                                 # 전체 데이터, 이후에 CSV파
 frames_temp = defaultdict(lambda:[])        # 임시로, 각 timestamp 별 센싱 데이터를 저장할 공간. 가득 차면 정렬하여 frames에 붙인다.
 curr_frame_dev_num = defaultdict(lambda:0)  # frames_temp에서 timestamp 마다 센싱 데이터가 몇 개 쌓였는지 체크
 max_frame_dev_num = 0                       # frames_temp의 timestamp마다 최대 몇 개의 데이터가 쌓일 수 있는지. 즉 데이터를 얻고 있는 총 센서 수를 뜻함.
+sequence = np.array([])                     # 한 sequence(200개 frame)을 담기위한 변수
 
 # Critical Section lock
 lock = asyncio.Lock()
+
+# 머신러닝 모델
+modelstyle = "none"
+model = None
+scaler = None
 
 
 # -------- 함수들 ----------#
@@ -68,6 +78,12 @@ async def make_frame(data):
     temp.extend(devdata)
 
     global frames
+    global modelstyle
+    global model
+    global scaler
+    global sequence
+    global predict_result
+
 
     # Critical section lock
     await lock.acquire()
@@ -85,16 +101,25 @@ async def make_frame(data):
             frames.append(frame)
 
             # 머신러닝 추론 수행
-            if False:
-                #print(frame)
+            if modelstyle == "svm": #svm 사용하는 경우 sklearn 이용
                 inp = np.array(frame[1:])
                 res = model.predict(scaler.transform(inp.reshape(1,-1)))
-                #print(res)
-                print("{:.2f}s|".format(devtime/1000), end="")
-                print("True" if res[0]==1 else "False")
+                resstr = "True" if res[0]==1 else "False"
+                print("{:.2f}s|".format(devtime/1000), resstr) #시간 데이터
+                predict_result = resstr
+
+            elif modelstyle == "lstm":
+                inp = np.array(frame[1:])
+                sequence = np.append(sequence, inp)
+                if len(sequence) == len(inp) * 200: #200개의 프레임이 모인다면...
+                    std = scaler.transform(sequence.reshape(-1,len(inp)))
+                    res = model.predict(std.reshape(-1,200,len(inp)))
+                    print(res)
+                    print(res.argmax(axis=-1))
+
+                    sequence = np.array([]) # sequence 다시 비우기
                 
-            global predict_result
-            predict_result = "result in make_frame"
+            pass
             
     finally:
         # lock 해제
@@ -127,8 +152,41 @@ async def write_message(client : BleakClient, time, message):
     await client.write_gatt_char(UUID_WRITE, message) # 송신
 
 # IMU 데이터 수집
-# 장치 센싱 중에 연결 해제되면 exception 발생시키기
-async def get_IMU(dev_addrs : list, gettime : int):
+# 장치 센싱 중에 연결 해제되면 exception 발생시키기?
+async def get_IMU(dev_addrs : list, gettime : int, position : str):
+
+    # 먼저 모델 불러오기
+    global model
+    global modelstyle
+    global scaler
+    model = None
+    scaler = None
+    modelstyle = "none"
+
+    # 운동자세마다 모델 경로 설정
+    if position == "neck":
+        modelstyle = "svm"
+        modelpath = "../model/neck_2_m.pkl"
+        scalerpath = "../model/neck_2_s.pkl"
+    else:
+        pass
+
+    # 불러오기
+    try:
+        if modelstyle == "svm":
+            file = open(modelpath, 'rb')
+            model = pickle.load(file)
+            file.close()
+        elif modelstyle == "lstm":
+            model = tf.keras.models.load_model(modelpath)
+        else:
+            raise Exception("model style err")
+        file = open(scalerpath, 'rb')
+        scaler = pickle.load(file)
+        file.close()
+    except Exception as e:
+        print("모델 파일을 불러오는 과정에서 문제 발생")
+        raise e
     
     # 센싱 데이터 관리용 변수 초기화
     global frames
