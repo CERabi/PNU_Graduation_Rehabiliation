@@ -83,7 +83,8 @@ function dev_scan(){
         }
     }
     let senddata = {
-        dev_list : dev_addrs
+        dev_list : dev_addrs,
+        pos : "none"
     }
     xhr.open("POST","http://localhost:8000/scan",true);
     xhr.setRequestHeader('Content-type', 'application/json');
