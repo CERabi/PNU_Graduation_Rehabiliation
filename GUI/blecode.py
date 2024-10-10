@@ -19,7 +19,7 @@ import tensorflow as tf
 
 # 전역 상태변수
 ble_status = "ready" # ready(일반), wait(기다림), on(실행 중), disconnected(뭐가 연결 해제됨)
-predict_result = "hehe"
+predict_result = "none"
 
 # BLE 서비스 characteristic uuid
 UUID_NOTIFY = "cafe0003-87a1-aade-bab0-c0ffeef3ae45"  # 센서로부터
@@ -115,7 +115,8 @@ async def make_frame(data):
                     std = scaler.transform(sequence.reshape(-1,len(inp)))
                     res = model.predict(std.reshape(-1,200,len(inp)))
                     print(res)
-                    print(res.argmax(axis=-1))
+                    resstr = "True" if res.argmax(axis=-1) == 1 else "False"
+                    predict_result = resstr
 
                     sequence = np.array([]) # sequence 다시 비우기
                 
@@ -168,6 +169,10 @@ async def get_IMU(dev_addrs : list, gettime : int, position : str):
         modelstyle = "svm"
         modelpath = "../model/neck_2_m.pkl"
         scalerpath = "../model/neck_2_s.pkl"
+    elif position == "hamstring":
+        modelstyle = "lstm"
+        modelpath = "../model/jh_ham_l_m.keras"
+        scalerpath = "../model/jh_ham_l_s.pkl"
     else:
         pass
 
@@ -188,6 +193,8 @@ async def get_IMU(dev_addrs : list, gettime : int, position : str):
         print("모델 파일을 불러오는 과정에서 문제 발생")
         raise e
     
+    # 센서 개수 안 맞으면... -> 클라이언트에서
+
     # 센싱 데이터 관리용 변수 초기화
     global frames
     global max_frame_dev_num
@@ -236,14 +243,11 @@ async def get_IMU(dev_addrs : list, gettime : int, position : str):
         # 시간 경과
         print("시간 경과")
 
-        # 값 이제 못 가져옴
-        ble_status = "ready"
-
         # stop notify
         for client in clients:    
             await client.stop_notify(UUID_NOTIFY)
 
-        return
+        pass
 
     except Exception as e:
         print("센서 연결 과정에서 문제 발생")

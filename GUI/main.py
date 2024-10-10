@@ -32,6 +32,7 @@ app.add_middleware(
 # 클라이언트로부터 센서 정보 받을 때 사용할 구조
 class DeviceInfo(BaseModel):
     dev_list : list
+    pos : str
 
 
 
@@ -94,7 +95,7 @@ async def scan(item : DeviceInfo):
 @app.post("/predict_start")
 async def predict_start(item : DeviceInfo):
     try:
-        await blecode.get_IMU(item.dev_list, 30, "neck")
+        await blecode.get_IMU(item.dev_list, 30, item.pos)
         return {"type"      :"message",
                 "message"   :"자세 추론이 끝남"}
     
@@ -115,8 +116,8 @@ async def predict_get():
             return return_message("/predict_get","어떤 센서가 갑자기 끊어짐;;")
         # on 상태인 경우 -- 추론 결과 리턴
         elif blestatus == "on":
-            return {"type"      :"data",
-                    "dev_online": blecode.predict_result}
+            return {"type"           :"data",
+                    "predict_result" : blecode.predict_result}
         
         # wait 상태의 경우 -- ready가 될 때 까지 히히 못가
         while(blecode.ble_status == "wait"):
