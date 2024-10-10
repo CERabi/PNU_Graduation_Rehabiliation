@@ -1,0 +1,115 @@
+*{
+    border: dotted 1px red;
+}
+
+body{
+    max-width: 1092px;
+}
+
+/* header*/
+header{
+    background-color: beige;
+    margin-bottom : 10px;
+}
+header h1{
+    text-align: center;
+}
+
+/* device list*/
+/* 전체 */
+section#dev_list{
+    width: 220px;
+    height: 1000px;
+    float: left;
+    background-color: bisque;
+    margin-right: 10px;
+}
+/* 하나 */
+div.dev{
+    width:95%;
+    height:50px;
+    background-color: aquamarine;
+    margin: 5px;
+}
+
+span.dev_addr, span.dev_name{
+    display: block;
+}
+
+/* online 글자 속성*/
+div.dev span.dev_isonline{
+    display: block;
+    box-sizing: border-box;
+    width: 20%;
+    height: 100%;
+    background-color: red;
+    float: right;
+    padding-top: 15px;
+    text-align: center;
+    
+}
+
+div.dev span.dev_isonline.on{
+    background-color: green;
+}
+div.dev span.dev_isonline::before{
+    content: "off";
+}
+div.dev span.dev_isonline.on::before{
+    content: "ON";
+}
+
+
+
+/*alert*/
+
+section#alarm_list{
+    background-color: yellowgreen;
+    width:200px;
+    height: auto;
+    float:right;
+    position: fixed;
+    right: 0px;
+    bottom: 0px;
+    display: flex;
+    flex-direction: column-reverse;
+}
+
+div.alarm{
+    display: flexbox;
+    height: 55px;
+    overflow: hidden;
+    background-color: brown;
+    margin-top: 10px;
+    
+    /*transition: 0.2s linear;*/
+}
+div.alarm:hover{
+    height:auto;
+    min-height: 55px;
+}
+div.alarm.exception span::before{
+    content: "[!]";
+}
+
+/*삭제버튼*/
+div.alarm button.btn_removealarm{
+    float: right;
+    width: 30px;
+}
+
+/* main */
+div#control_board{
+    background-color: wheat;
+    height: 100px;
+}
+
+div#show_example{
+    background-color: aliceblue;
+    display:none;
+}
+
+div#result{
+    background-color: azure;
+    height: 200px;
+}

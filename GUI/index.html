@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pat & Matlab</title>
+    <link rel="stylesheet" href="style.css">
+    </link>
+    <script src="index.js"></script>
+</head>
+
+<body>
+    <header>
+        <h1>
+            IMU Giban Gyeongryang Jaehwalundong Jase Churon Mit Bozo System Gaebal
+        </h1>
+    </header>
+    <section id="dev_list">
+        <h3> Device list</h3>
+        <!--
+        <div class="dev">
+            <span class="dev_isonline on"></span>
+            <span class="dev_name">A</span>
+            <span class="dev_addr">7C:AB:CD:EF:00:11</span>
+        </div>
+        <div class="dev">
+            <span class="dev_isonline"></span>
+            <span class="dev_name">B</span>
+            <span class="dev_addr">7C:AB:CD:EF:00:11</span>
+        </div> -->
+    </section>
+
+    <section id="main">
+        <div id="control_board">
+            <span> 장치 스캔하기 </span> <br>
+            <button id="btn_scan" onclick="btn_scan()"> scan </button> <br>
+
+            <span> 자세 추론하기 </span> <br>
+            <select id="sel_rehab">
+                <option>Assisted shoulder flexion</option>
+                <option>Hamstring stretch</option>
+                <option>Neck side extension</option>
+                <option>Bridge stretch</option>
+            </select>
+            <button id="btn_predict" onclick="btn_predict()"> 시작 </button> <br>
+        </div>
+        <div id="show_example">
+            <p>Assisted shoulde flexion</p>
+            <p>
+                0. 필요한 센서: A B C D E <br>
+                1. 양 손을 깍지끼고 양팔을 아래로 뻗습니다.<br>
+                2. 5초 동안 양 팔을 편 채 위로 듭니다.<br>
+                3. 다음 5초 동안 아래로 내립니다.<br>
+                4. 총 10회 반복합니다.<br>
+            </p>
+            <p> 필요한 센서가 모두 연결되어 있지 않습니다,센서 연결 중...</p>
+        </div>
+        <div id="result">
+            <p>
+                추론 중...
+            </p>
+            <p>
+                [---------------------] 1s/10s
+            </p>
+            <p>
+               ... O ... X ... O ... O ... X
+            </p>
+            <p>
+                결과 : 8/10
+            </p>
+        </div>
+    </section>
+
+
+    <section id="alarm_list">
+        <div class="alarm">
+            <button class="btn_removealarm" onclick="remove_alarm(this)">X</button>
+            <span>
+                조이애니브라이어니코아리그웬릴리아코르키바이룰루벡스초가스오리아나카르마잔나누누와윌럼프
+                마오카이케이틀린트위치바드트위스티드페이트카서스흐웨이파이크아무무세라핀진오공탈리야벨코즈신드라나서스말파이트
+                자야모르가나쓰레쉬브라움오로라나미세주아니럭스피들스틱빅토르리산드라애쉬티모스카너람머스
+            </span>
+        </div>
+        <div class="alarm">
+            <button class="btn_removealarm" onclick="remove_alarm(this)">X</button>
+            <span>마하반야바라밀다심경관자재보살행심반야바라밀다시
+                조견오온개공도일체고액사리자색불이공공불이색색즉시공
+                공즉시색수상행식역부여시사리자시제법공상불생불멸
+                불구부정부증불감시고공중무색무수상행식무안이비설신의
+                무색성향미촉법무안계내지무의식계무무명역무무명진내지무노사
+                역무노사진무고집멸도무지역무득이무소득고보리살타의반야바라밀다
+                고심무가애무가애고무유공포원리전도몽상구경열반삼세재불의반야라마밀다
+                고득아뇩다라삼먁삼보리고지반야바라밀다시대신주시대명주시무상주시무등등주
+                능제일체고진실불허고설반야바라밀다주즉설주왈아재아재바라아재바라상아재
+                모지사바하
+            </span>
+        </div>
+        <div class="alarm exception">
+            <button class="btn_removealarm" onclick="remove_alarm(this)">X</button>
+            <span>민트초코하와이안피자
+            </span>
+        </div>
+    </section>
+
+</body>
+
+</html>
