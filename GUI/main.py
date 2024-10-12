@@ -94,9 +94,13 @@ async def scan(item : DeviceInfo):
 # 추론을 준비하고 실행함
 @app.post("/predict_start")
 async def predict_start(item : DeviceInfo):
+    # 추론할 준비가 되어있지 않음...(이미 수행 중인 경우) -> 리턴
+    if blecode.ble_status != "ready":
+        return {"type"      :"message",
+                "message"   :"아직 사용할 수 없음!"}
     try:
         await blecode.get_IMU(item.dev_list, 30, item.pos)
-        return {"type"      :"message",
+        return {"type"      :"complete",
                 "message"   :"자세 추론이 끝남"}
     
     except Exception as e:
@@ -110,10 +114,10 @@ async def predict_get():
 
         # ready 인 경우 -- 얻어갈 게 없음..
         if blestatus == "ready":
-            return return_message("/predict_get","predict_start이 시작되지 않음")
+            return return_message("/predict_get","predict_start이 시작되지 않았습니다.")
         # disconnected인 경우 -- 문제 발생해서 미리 알림
         elif blestatus == "disconnected":
-            return return_message("/predict_get","어떤 센서가 갑자기 끊어짐;;")
+            return return_message("/predict_get","센서 연결이 끊어졌습니다.")
         # on 상태인 경우 -- 추론 결과 리턴
         elif blestatus == "on":
             return {"type"           :"data",
@@ -122,7 +126,8 @@ async def predict_get():
         # wait 상태의 경우 -- ready가 될 때 까지 히히 못가
         while(blecode.ble_status == "wait"):
             await asyncio.sleep(0.1)
-        return return_message("/predict_get","wait상태 끝")
+        return {"type"      :"complete",
+                "message"   :"wait_end"}
     
     except Exception as e:
         return return_error("/predict_get", e)

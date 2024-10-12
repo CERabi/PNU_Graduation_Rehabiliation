@@ -65,14 +65,19 @@ div.dev span.dev_isonline.on::before{
 
 section#alarm_list{
     background-color: yellowgreen;
+
     width:200px;
     height: auto;
     float:right;
     position: fixed;
-    right: 0px;
+    right: 12px;
     bottom: 0px;
+
     display: flex;
     flex-direction: column-reverse;
+
+    overflow: auto;
+
 }
 
 div.alarm{
@@ -89,13 +94,20 @@ div.alarm:hover{
     min-height: 55px;
 }
 div.alarm.exception span::before{
-    content: "[!]";
+    /*content: "[!]";*/
+    content: url("images/triangle-mini.png");
 }
+div.alarm.complete span::before{
+    /*content: "[!]";*/
+    content: url("images/check-mini.png");
+}
+
 
 /*삭제버튼*/
 div.alarm button.btn_removealarm{
     float: right;
     width: 30px;
+    height: 30px
 }
 
 /* main */

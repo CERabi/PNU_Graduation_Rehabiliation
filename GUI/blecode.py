@@ -261,3 +261,6 @@ async def get_IMU(dev_addrs : list, gettime : int, position : str):
 
         # frames 잘 만들어지나?? ㅇㅇ
         # print(frames)
+
+        # ble_status
+        # ready(이때만 추론 시작할 수 있게 해야)->wait->on(->disconnected 도중에 값 바뀜)->ready(센서 해제되면 다시 ready)
