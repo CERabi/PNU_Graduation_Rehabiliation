@@ -50,6 +50,11 @@ modelstyle = "None"
 model = None
 scaler = None
 
+# 센싱 속도 조절
+timestep_num = 100  # 한 sequence(10초) 당 몇 개?
+sampling_ms = 100  # 몇 ms 주기로?
+assert (sampling_ms / 1000) * (timestep_num / 10) == 1
+
 # ====================================================
 
 # online 상태인 센서목록 출력
@@ -131,10 +136,10 @@ async def make_frame(data):
                 elif modelstyle == "lstm":
                     inp = np.array(frame[1:])
                     sequence = np.append(sequence, inp) # 가장 앞은 ms임
-                    if len(sequence) == len(inp) * 200: #200개의 프레임이 모인다면...
+                    if len(sequence) == len(inp) * timestep_num: #200개의 프레임이 모인다면...
                         print("now")
                         std = scaler.transform(sequence.reshape(-1,len(inp)))
-                        res = model.predict(std.reshape(-1,200,len(inp)))
+                        res = model.predict(std.reshape(-1,timestep_num,len(inp)))
                         print(res)
                         print(res.argmax(axis=-1))
 
@@ -207,11 +212,9 @@ def emer_save():
 
 # 센싱 중에 시간 알려줌.
 async def time_indicate(maxtime :int):
-    if do_predict == True: #추론중엔 안함
-        return
     dt = 1
     for t in range(0,maxtime, dt):
-        print("진행 : {}/{} ({:.2f}%)".format(t,maxtime,100*t/maxtime))
+        if not do_predict: print("진행 : {}/{} ({:.2f}%)".format(t,maxtime,100*t/maxtime))
 
         # 10초 단위로, 5초마다 올렸다 내렸다 지시하고 싶을때
         
@@ -244,6 +247,13 @@ async def get_IMU(devices : list, gettime : int):
         # 수신하지 않다가, getdata flag를 True로 바꾸며 수신 시작
         global notify_getdata
         notify_getdata = True
+
+        # 모든 장치의 센싱 속도를 조절(기존 20Hz)
+        print("모든 센서의 sampling rate 초기화")
+        task = []
+        for client in clients:
+            task.append(asyncio.create_task(write_message(client, 1, struct.pack("hh",2,sampling_ms))))
+        await asyncio.wait(task)
 
         # 모든 장치의 timestamp를 동시에 초기화
         print("모든 센서의 timestamp 초기화")
