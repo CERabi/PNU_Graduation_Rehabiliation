@@ -1,6 +1,7 @@
 # BLE, 비동기 프로그래밍 관련
 import asyncio
 from bleak import BleakClient, BleakScanner
+from bleak import exc
 # 데이터 처리 관련
 import pickle
 import struct
@@ -64,7 +65,7 @@ async def view_online():
         print("\tName={}\tAddress={}\t{}".format(device_list[addr],addr, "ONLINE" if online else "offline"))
 
 # BLE 센서 스캔
-async def scan_device():
+async def scan_device(printlist = True):
     print("센서 검색 중..")
     scanner = BleakScanner()
     
@@ -85,7 +86,8 @@ async def scan_device():
             device_online[d.address] = True
     
     # 검색 완료된 장치 목록 출력
-    await view_online()
+    if printlist:
+        await view_online()
 
 
 # 센서와 연결 해제시 발생하는 callback
@@ -176,7 +178,7 @@ async def write_message(client : BleakClient, time, message):
     print("\t메시지 전송!:","Name=",device_list[client.address])
     await client.write_gatt_char(UUID_WRITE, message) # 수신
     # 참고) 송신할 메시지 구조 : hh (16bit 정수 2개)
-    # 첫번째 정수 : 명령타입. (1:sync 맞추기(timestamp 초기화), 2:샘플링 속도 조절하기)
+    # 첫번째 정수 : 명령타입. (1:sync 맞추기(timestamp 초기화), 2:샘플링 속도 조절하기, 3:deep sleep)
     # 두번째 정수 : 값 (sync 맞추는 경우에는 따로 필요 없음)
 
 # 센싱 데이터 저장.
@@ -294,6 +296,21 @@ async def get_IMU(devices : list, gettime : int):
         print('모든 센서 연결 해제')
         for client in clients:
             await client.disconnect()
+
+async def sleep(address):
+    try:
+        sleepclient = BleakClient(address, disconnected_callback=on_disconnect)
+        await sleepclient.connect()
+        await write_message(sleepclient, 0, struct.pack("hh",3,0))
+
+    except exc.BleakDeviceNotFoundError:
+        # 이건 센서가 애초에 켜져있지 않은 경우
+        pass
+
+    except Exception as e:
+        # 센서가 스스로 deep sleep에 빠져 정상적인 disconnect가 불가하다
+        # 따라서 발생하는 exception을 흘릴 필요가 있음. (OSError)
+        pass
 
 # main function. 사용자에게 명령 입력받고 수행
 async def run():
@@ -465,7 +482,23 @@ async def run():
             await get_IMU(devices, gettime)
 
             #따로 데이터 저장은 수행하지 않음
-            
+        
+        # deep sleep 모드로 센서 모드 변경
+        elif command=="sleep":
+            print("모든 Online 센서를 deep sleep 상태로 변경합니다.")
+            # 먼저 online인 센서 감지
+            await scan_device(printlist=False)
+
+            # 동시에 sleep 메시지 전송
+            task = []
+            for addr, online in device_online.items():
+                if not online: continue
+                task.append(asyncio.create_task(sleep(addr)))
+            await asyncio.wait(task)
+
+            # 다시 장치 스캔하여 마무리
+            await scan_device()
+
         else:
             # 없는 명령
             print("다시 입력해주세요..")
