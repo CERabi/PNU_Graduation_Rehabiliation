@@ -51,8 +51,8 @@ model = None
 scaler = None
 
 # 센싱 속도 조절
-timestep_num = 100  # 한 sequence(10초) 당 몇 개?
-sampling_ms = 100  # 몇 ms 주기로?
+timestep_num = 50  # 한 sequence(10초) 당 몇 개?
+sampling_ms = 200  # 몇 ms 주기로?
 assert (sampling_ms / 1000) * (timestep_num / 10) == 1
 
 # ====================================================
