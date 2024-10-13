@@ -156,6 +156,10 @@ async def write_message(client : BleakClient, time, message):
 # 장치 센싱 중에 연결 해제되면 exception 발생시키기?
 async def get_IMU(dev_addrs : list, gettime : int, position : str):
 
+    # 상태를 wait로--값을 받을 수 있을 때까지 대기 유도
+    global ble_status
+    ble_status = "wait"
+
     # 먼저 모델 불러오기
     global model
     global modelstyle
@@ -206,10 +210,6 @@ async def get_IMU(dev_addrs : list, gettime : int, position : str):
     curr_frame_dev_num = defaultdict(lambda:0)  # 현재 timestamp 에서 센싱 완료한 센서 개수 초기화
 
     print("센서와 연결 시작")
-
-    # 상태를 wait로--값을 받을 수 있을 때까지 대기 유도
-    global ble_status
-    ble_status = "wait"
     
     # BleakClient 보관 리스트
     clients = list()   
