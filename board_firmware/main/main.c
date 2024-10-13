@@ -77,6 +77,10 @@ static int device_write(uint16_t conn_handle, uint16_t attr_handle, struct ble_g
         sampling_time_ms = cmd->value;
         ESP_LOGI(TAG, "new sampling time(ms) : %d",sampling_time_ms);
     }
+    if(cmd->type == 3){
+        ESP_LOGI(TAG, "(gateway -> esp)start deep sleep");
+        esp_deep_sleep_start();
+    }
     return 0;
 }
 
