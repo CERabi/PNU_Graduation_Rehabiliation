@@ -40,6 +40,10 @@ modelstyle = "none"
 model = None
 scaler = None
 
+# 센싱 속도 조절
+timestep_num = 200  # 한 sequence에 몇개?(10초)
+sampling_ms = 50   # 몇 ms 주기로 sampling?
+
 
 # -------- 함수들 ----------#
 
@@ -83,6 +87,7 @@ async def make_frame(data):
     global scaler
     global sequence
     global predict_result
+    global timestep_num
 
 
     # Critical section lock
@@ -111,9 +116,9 @@ async def make_frame(data):
             elif modelstyle == "lstm":
                 inp = np.array(frame[1:])
                 sequence = np.append(sequence, inp)
-                if len(sequence) == len(inp) * 200: #200개의 프레임이 모인다면...
+                if len(sequence) == len(inp) * timestep_num: #200개의 프레임이 모인다면...
                     std = scaler.transform(sequence.reshape(-1,len(inp)))
-                    res = model.predict(std.reshape(-1,200,len(inp)))
+                    res = model.predict(std.reshape(-1,timestep_num,len(inp)))
                     print(res)
                     resstr = "True" if res.argmax(axis=-1) == 1 else "False"
                     predict_result = resstr
@@ -168,6 +173,12 @@ async def get_IMU(dev_addrs : list, gettime : int, position : str):
     scaler = None
     modelstyle = "none"
 
+    # 모델마다 필요한 sampling rate
+    global sampling_ms
+    global timestep_num
+    sampling_ms = 50    #기본값
+    timestep_num = 200
+
     # 운동자세마다 모델 경로 설정
     if position == "neck":
         modelstyle = "svm"
@@ -177,8 +188,13 @@ async def get_IMU(dev_addrs : list, gettime : int, position : str):
         modelstyle = "lstm"
         modelpath = "../model/jh_ham_l_m.keras"
         scalerpath = "../model/jh_ham_l_s.pkl"
+        #sampling_ms = 50
+        #timestep_num = 200
     else:
         pass
+
+    # sequence의 timestep개수와 sampling 주기 안 맞을 경우 Assert
+    assert sampling_ms * timestep_num == 10000
 
     # 불러오기
     try:
@@ -223,6 +239,13 @@ async def get_IMU(dev_addrs : list, gettime : int, position : str):
             await client.connect()
             print("\t센서 연결됨:\tAddress={}".format(client.address))
             await client.start_notify(UUID_NOTIFY,when_notified)
+        
+        # 모든 장치의 센싱 속도를 조절(기존 20Hz)
+        print("모든 센서의 sampling rate 초기화")
+        task = []
+        for client in clients:
+            task.append(asyncio.create_task(write_message(client, 1, struct.pack("hh",2,sampling_ms))))
+        await asyncio.wait(task)
 
         # 모든 장치의 timestamp를 동시에 초기화
         print("모든 센서의 timestamp 초기화")
