@@ -124,8 +124,13 @@ async def make_frame(data):
                     resstr = "True" if res.argmax(axis=-1) == 1 else "False"
                     predict_result = resstr
 
+                    print("information!")  ###
+                    #print(len(sequence))   ###
+                    print(sequence.shape)   ###
+
                     sequence = np.array([]) # sequence 다시 비우기
                 
+
             pass
             
     finally:
@@ -139,7 +144,7 @@ async def when_notified(sender, data):
     imudata = struct.unpack('ci6f',data)
 
     # 서버 단에서 값을 보고 싶다면 주석 해제하기
-    #print("\tName={}|Time={}|".format(imudata[0].decode(),imudata[1]),imudata[2:])
+    print("\tName={}|Time={}|".format(imudata[0].decode(),imudata[1]));#,imudata[2:])
 
     # 수신된 값을 가지고 frame생성. (모든 센서 값이 한 행으로 이루어진 데이터)
     await make_frame(imudata)
@@ -221,10 +226,13 @@ async def get_IMU(dev_addrs : list, gettime : int, position : str):
     global max_frame_dev_num
     global frames_temp
     global curr_frame_dev_num
+    global sequence
     frames = []                                 # 전체 데이터 초기화
     frames_temp = defaultdict(lambda:[])        # 임시 데이터도 초기화.
     max_frame_dev_num = len(dev_addrs)            # 한 frame 당 최대 센서 개수 지정
     curr_frame_dev_num = defaultdict(lambda:0)  # 현재 timestamp 에서 센싱 완료한 센서 개수 초기화
+    sequence = np.array([])
+    
 
     print("센서와 연결 시작")
     
