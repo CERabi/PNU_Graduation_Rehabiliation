@@ -118,12 +118,12 @@ function dev_predict() {
         }
     }
     if (not_online.length != 0) {
-        document.getElementById("status_str").textContent = "필요한 센서를 모두 연결해주세요. 없음:" + not_online.toString();
+        document.getElementById("status_str").textContent = "필요한 센서를 모두 연결해주세요. 부족 : " + not_online.toString();
         return;
     }
     document.getElementById("status_str").textContent = "센서 연결 중...";
     // 결과창 보이게 설정
-    document.getElementById("result").style.display = "block";
+    document.getElementById("result").style.visibility = "visible";
     // 이제 시작버튼 block
     document.getElementById("btn_predict").disabled = true;
 
@@ -288,21 +288,25 @@ function btn_scan() {
     dev_scan()
 }
 function btn_predict() {
-    
     dev_predict()
+}
+function remove_alarm_all(e){
+    let parent = e.parentElement;
+    parent.replaceChildren();
+    parent.appendChild(e)
 }
 
 function example_refresh() {
     // 선택한 자세 읽음
     let position = document.getElementById("sel_rehab").value;
     // 설명창 변경
-    document.getElementById("show_example").style.display = "block";
+    document.getElementById("show_example").style.visibility = "visible";
     document.getElementById("pos_title").textContent = position_title[position];
     document.getElementById("pos_description").innerHTML = position_description[position];
     document.getElementById("status_str").textContent = "";
 
     // 결과창 안 보이게 설정
-    document.getElementById("result").style.display = "none";
+    document.getElementById("result").style.visibility = "hidden";
 }
 
 // document 로드된 후에 시작
@@ -343,13 +347,13 @@ const position_description = {
     "0. 필요한 센서: A, B <br>\
     1. 바른 자세를 유지합니다.<br>\
     2. 목에 힘을 풀고, 한 손을 들어 반대편 머리를 잡고 당깁니다. <br>\
-    3. 목을 꺾어버리진 마세요.<br>",
+    3. 실수로 스스로 목을 꺾어버리진 마세요.<br>",
 
     "bridge":
-    "0. 필요한 센서: A, B <br>\
-    1. 바른 자세를 유지합니다.<br>\
-    2. 목에 힘을 풀고, 한 손을 들어 반대편 머리를 잡고 당깁니다. <br>\
-    3. 목을 꺾어버리진 마세요.<br>"
+    "0. 필요한 센서: A, B, C, D, E <br>\
+    1. 바르게 누운 후 양쪽 무릎을 구부려 줍니다.<br>\
+    2. 엉덩이를 들어 올리면서 허벅지에 힘을 줍니다. <br>\
+    3. 다리와 배, 가슴이 평행이 되도록 합니다.<br>"
 }
 const position_essential_sensor =
 {
