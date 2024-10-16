@@ -401,6 +401,7 @@ async def run():
             global modelstyle
             global model
             global scaler
+            global sequence
 
             #타입
             print("학습 모델 타입? (1:svm, 2:lstm)")
@@ -476,6 +477,7 @@ async def run():
             frames_temp = defaultdict(lambda:[])        # 임시 데이터도 초기화.
             max_frame_dev_num = len(devices)            # 한 frame 당 최대 센서 개수 지정
             curr_frame_dev_num = defaultdict(lambda:0)  # 현재 timestamp 에서 센싱 완료한 센서 개수 초기화
+            sequence = np.array([]) # 추론시 사용하는 변수 초기화
 
             # 센싱&추론 수행
             do_predict = True
