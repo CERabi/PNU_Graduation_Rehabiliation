@@ -117,6 +117,7 @@ async def make_frame(data):
                 inp = np.array(frame[1:])
                 sequence = np.append(sequence, inp)
                 if len(sequence) == len(inp) * timestep_num: #200개의 프레임이 모인다면...
+                    print("{:.2f}s|".format(devtime/1000))                  
                     std = scaler.transform(sequence.reshape(-1,len(inp)))
                     res = model.predict(std.reshape(-1,timestep_num,len(inp)))
                     print(res)
@@ -186,10 +187,10 @@ async def get_IMU(dev_addrs : list, gettime : int, position : str):
         scalerpath = "../model/neck_2_s.pkl"
     elif position == "hamstring":
         modelstyle = "lstm"
-        modelpath = "../model/jh_ham_l_m.keras"
-        scalerpath = "../model/jh_ham_l_s.pkl"
-        #sampling_ms = 50
-        #timestep_num = 200
+        modelpath = "../model/hamstringr_50hz_m.keras"
+        scalerpath = "../model/hamstringr_50hz_s.pkl"
+        sampling_ms = 200
+        timestep_num = 50
     else:
         pass
 

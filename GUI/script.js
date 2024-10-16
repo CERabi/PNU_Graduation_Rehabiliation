@@ -22,11 +22,11 @@ function get_device_information() {
             if (received.type == "data") {
                 dev_names = received.dev_names;
                 dev_addrs = received.dev_addrs;
-                
+
                 // 장치 목록 element 가져옴
                 let dev_list = document.getElementById("dev_list");
                 for (let i in dev_names) {
-                    dev_names_to_addrs[dev_names[i]] = dev_addrs[i]; 
+                    dev_names_to_addrs[dev_names[i]] = dev_addrs[i];
 
                     let div_dev = document.createElement("div");
                     div_dev.setAttribute("class", "dev");
@@ -104,28 +104,26 @@ function dev_predict() {
     // 선택한 자세 읽음
     let position = document.getElementById("sel_rehab").value;
     // 설명창 변경
-    document.getElementById("show_example").style.display = "block";
-    document.getElementById("pos_title").textContent = position_title[position];
-    document.getElementById("pos_description").innerHTML = position_description[position];
+    example_refresh();
 
     // 선택한 자세에 맞는 센서가 있는지 확인
     let not_online = []
-    for(let s of position_essential_sensor[position]){
-        if (!dev_now_online.includes(s)){
+    for (let s of position_essential_sensor[position]) {
+        if (!dev_now_online.includes(s)) {
             not_online.push(s)
         }
     }
-    if (not_online.length != 0){
+    if (not_online.length != 0) {
         document.getElementById("status_str").textContent = "필요한 센서를 모두 연결해주세요. 없음:" + not_online.toString();
         return;
     }
     document.getElementById("status_str").textContent = "센서 연결 중...";
 
     // 필요한 센서들 주소 가져오기
-    let connect_addrs = position_essential_sensor[position].map(function(e){
+    let connect_addrs = position_essential_sensor[position].map(function (e) {
         return dev_names_to_addrs[e];
     })
-     
+
     // predict_start 호출
     let xhr = new XMLHttpRequest()
     xhr.onreadystatechange = function () {
@@ -148,46 +146,84 @@ function dev_predict() {
         if (this.readyState == 4 && this.status == 200) {
             let received = JSON.parse(this.responseText);
             // 추론이 끝나 응답을 받는 경우
-            if(received.type == "complete" && received.message == "wait_end"){
+            if (received.type == "complete" && received.message == "wait_end") {
                 add_alarm(received.type, "자세 추론을 시작합니다.");
-                show_predict();
+                document.getElementById("status_str").textContent = "센서 연결 끝";
+                show_predict(position);
             }
-            else{
+            else {
                 add_alarm(received.type, received.message);
             }
         }
     }
-    xhr2.open("GET", "http://localhost:8000/predict_get", true);
-    setTimeout(xhr2.send(),1000);
+    setTimeout(xhr2.open("GET", "http://localhost:8000/predict_get", true), 800);
+    setTimeout(xhr2.send(), 1000);
 }
 
 // 자세추론 중에 결과 확인하기
-function show_predict(){
+function show_predict(position) {
     //시간 경과
     let ellapsed = 0;
+    let finalscore = 0;
     let result_time = document.getElementById("result_time");
+    let result_time_bar = document.getElementById("result_time_graph_bar");
+    let result_text = document.getElementById("result_text");
+    result_text.textContent = "";
+    let result_final = document.getElementById("result_final");
+    result_final.textContent = "";
 
     let xhr = new XMLHttpRequest()
     xhr.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
             let received = JSON.parse(this.responseText);
-            if(received.type == "data"){
+            if (received.type == "data" && ellapsed <= max_predict_time) {
                 //add_alarm(received.type, received.predict_result)
                 result_time.textContent = ellapsed.toString();
+                result_time_bar.style.width = ((ellapsed % 10 + 0.5) * 10).toString() + "%"
+
+                if (position_model_type["lstm"].includes(position)) { //반복동작
+                    if (ellapsed % 10 == 0) { // 10초가 지날 때마다
+                        //결과 등록
+                        if (received.predict_result == "True") {
+                            result_text.textContent += " ...O";
+                            finalscore += 1;
+                        }
+                        else {
+                            result_text.textContent += " ...X";
+                        }
+
+                    }
+
+                }
+                else {  //특정동작
+                    if (received.predict_result == "True") {
+                        finalscore += 1;
+                        result_text.textContent = "목표 달성 중..";
+                    }
+                    else {
+                        result_text.textContent = "목표 안 달성 중..";
+                    }
+                }
             }
-            else{
-                // 정지
+            else if (ellapsed > max_predict_time) { //시간 만료로 정지하는경우.
+                window.clearInterval(timer);
+                result_final.textContent = finalscore.toString();
+                return;
+            }
+            else { //불상의 이유로 정지함
                 add_alarm(received.type, received.message)
-                window.clearInterval(timer)
+                window.clearInterval(timer);
+                result_final.textContent = "문제가 발생하여 자세 추론이 올바르게 이루어지지 못함.";
+                return;
             }
         }
     }
-    
-    var timer = window.setInterval(function(){
+
+    var timer = window.setInterval(function () {
         xhr.open("GET", "http://localhost:8000/predict_get", true);
         xhr.send();
-        ellapsed += 1;
-    }, 1000)
+        ellapsed += 0.5;
+    }, 500)
 }
 
 
@@ -234,12 +270,28 @@ function btn_predict() {
     dev_predict()
 }
 
+function example_refresh() {
+    // 선택한 자세 읽음
+    let position = document.getElementById("sel_rehab").value;
+    // 설명창 변경
+    document.getElementById("show_example").style.display = "block";
+    document.getElementById("pos_title").textContent = position_title[position];
+    document.getElementById("pos_description").innerHTML = position_description[position];
+    document.getElementById("status_str").textContent = "";
+}
+
 function begin() {
     get_device_information();
 }
 
 
-//..
+//운동 관련 변수들
+const max_predict_time = 30;
+
+const position_model_type = {
+    "lstm": ["shoulder", "hamstring"],
+    "svm": ["neck", "bridge"]
+}
 const position_title = {
     "shoulder": "Assisted shoulder flexion",
     "hamstring": "Hamstring stretch",
@@ -248,35 +300,35 @@ const position_title = {
 };
 const position_description = {
     "shoulder":
-    "0. 필요한 센서: B(왼손목) C(오른손목) F(배꼽) <br>\
+        "0. 필요한 센서: B(왼손목) C(오른손목) F(배꼽) <br>\
     1. 양 손을 깍지끼고 양팔을 아래로 뻗습니다.<br>\
     2. 5초 동안 양 팔을 편 채 위로 올립니다.<br>\
     3. 다음 5초 동안 아래로 내립니다.<br>\
     4. 총 10회 반복합니다.<br>",
 
-    "hamstring": 
-    "0. 필요한 센서: F(배꼽) G(무릎 위) H(발목 위) \
+    "hamstring":
+        "0. 필요한 센서: F(배꼽) G(무릎 위) H(발목 위) \
     1. 의자에 앉아 허리를 곧게 폅니다. <br>\
     2. 5초간 (왼쪽) 종아리를 서서히 폅니다. <br>\
     3. 다음 5초간 (왼쪽) 종아리를 서서히 내립니다.<br>\
     4. 총 10회 반복합니다.<br>",
 
     "neck":
-    "0. 필요한 센서: A, B \
+        "0. 필요한 센서: A, B \
     1. 바른 자세를 유지합니다.<br>\
     2. 목에 힘을 풀고, 한 손을 들어 반대편 머리를 잡고 당깁니다. <br>\
     3. 목을 꺾어버리진 마세요.<br>",
 
     "bridge":
-    "0. 필요한 센서: A, B \
+        "0. 필요한 센서: A, B \
     1. 바른 자세를 유지합니다.<br>\
     2. 목에 힘을 풀고, 한 손을 들어 반대편 머리를 잡고 당깁니다. <br>\
     3. 목을 꺾어버리진 마세요.<br>"
 }
 const position_essential_sensor =
 {
-    "shoulder": ["B","C","F"],
-    "hamstring": ["F","G","H"],
-    "neck": ["A","B"],
-    "bridge": ["A","B","C","D","E"]
+    "shoulder": ["B", "C", "F"],
+    "hamstring": ["F", "G", "H"],
+    "neck": ["A", "B"],
+    "bridge": ["A", "B", "C", "D", "E"]
 };

@@ -111,6 +111,7 @@ async def predict_start(item : DeviceInfo):
 async def predict_get():
     try:
         blestatus = blecode.ble_status
+        print("ble status : ",blestatus)
 
         # ready 인 경우 -- 얻어갈 게 없음..
         if blestatus == "ready":

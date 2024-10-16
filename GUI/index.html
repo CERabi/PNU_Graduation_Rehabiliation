@@ -37,7 +37,7 @@
             <button id="btn_scan" onclick="btn_scan()"> scan </button> <br>
 
             <span> 자세 추론하기 </span> <br>
-            <select id="sel_rehab">
+            <select id="sel_rehab" onclick="example_refresh()">
                 <option value="shoulder">Assisted shoulder flexion</option>
                 <option value="hamstring">Hamstring stretch</option>
                 <option value="neck">Neck side extension</option>
@@ -58,12 +58,14 @@
         </div>
         <div id="result">
             <p>
-                추론 중...
+                자세 추론 상황
             </p>
-            <p id="result_time">
-                [------------------------------------------] 1s/10s
-            </p>
-            <p id="result_some">
+            <div id="result_time_graph">
+                <div id="result_time_graph_bar"></div>
+                <p id="result_time">10.5</p>
+            </div>
+            
+            <p id="result_text">
                ... O ... X ... O ... O ... X
             </p>
             <p id="result_final">

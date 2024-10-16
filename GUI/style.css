@@ -125,3 +125,26 @@ div#result{
     background-color: azure;
     height: 200px;
 }
+
+div#result_time_graph{
+    display: inline-block;
+    position: relative;
+    width:500px;
+    height:20px;
+    background-color: burlywood;
+}
+div#result_time_graph_bar{
+    width:70%;
+    height:100%;
+    background-color: red;
+}
+p#result_time{
+    display: inline;
+    margin: 0;
+    position:absolute;
+    top: 0px;
+    right: 0px;
+}
+p#result_time::after{
+    content: "s/100s"
+}
