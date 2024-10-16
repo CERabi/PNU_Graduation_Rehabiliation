@@ -101,7 +101,7 @@ async def predict_start(item : DeviceInfo):
     try:
         await blecode.get_IMU(item.dev_list, 30, item.pos)
         return {"type"      :"complete",
-                "message"   :"자세 추론이 끝남"}
+                "message"   :"자세 추론이 끝났습니다."}
     
     except Exception as e:
         return return_error("/predict_start", e)

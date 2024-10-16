@@ -81,7 +81,6 @@ section#alarm_list{
 }
 
 div.alarm{
-    display: flexbox;
     height: 55px;
     overflow: hidden;
     background-color: brown;

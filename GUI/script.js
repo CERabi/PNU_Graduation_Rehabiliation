@@ -132,11 +132,6 @@ function dev_predict() {
         return dev_names_to_addrs[e];
     })
 
-    // 처음 predict_get 호출
-    let xhr2 = new XMLHttpRequest()
-    xhr2.open("GET", "http://localhost:8000/predict_get", false);
-    xhr2.send();
-
     // predict_start 호출
     let xhr = new XMLHttpRequest()
     xhr.onreadystatechange = function () {
@@ -154,18 +149,21 @@ function dev_predict() {
     xhr.send(JSON.stringify(senddata));
 
     // wait를 위한 predict_get 호출
-    xhr2 = new XMLHttpRequest()
+    let xhr2 = new XMLHttpRequest()
     xhr2.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
             let received = JSON.parse(this.responseText);
-            // 추론이 끝나 응답을 받는 경우
+            // 추론 준비가 끝난 경우
             if (received.type == "complete" && received.message == "wait_end") {
-                add_alarm(received.type, "자세 추론을 시작합니다.");
+                add_alarm("message", "자세 추론을 시작합니다.");
                 document.getElementById("status_str").textContent = "센서 연결 끝";
                 show_predict(position);
             }
             else {
+                // 추론을 시작할 수 없는 경우..
                 add_alarm(received.type, received.message);
+                document.getElementById("btn_predict").disabled = false;
+
             }
         }
     }
@@ -225,7 +223,8 @@ function show_predict(position) {
                     resultstr="총 10회의 반복동작 중 " + finalscore.toString() + "회 성공!";
                 }
                 else{
-                    resultstr="총 " + max_predict_time.toString() + "초 동안에 목표자세 "+ (((finalscore/2)/max_predict_time)*100).toFixed(2).toString() +"%만큼 달성!"
+                    let svmscore = (((finalscore/2)/max_predict_time)*100).toFixed(2)
+                    resultstr="총 " + max_predict_time.toString() + "초 동안에 목표자세 총 "+ svmscore.toString() +"%만큼 달성!"
                 }
                 result_final.textContent = resultstr;
                 document.getElementById("btn_predict").disabled = false;
