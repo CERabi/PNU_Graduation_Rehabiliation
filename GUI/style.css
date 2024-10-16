@@ -122,6 +122,7 @@ div#show_example{
 }
 
 div#result{
+    display:none;
     background-color: azure;
     height: 200px;
 }
@@ -134,7 +135,7 @@ div#result_time_graph{
     background-color: burlywood;
 }
 div#result_time_graph_bar{
-    width:70%;
+    width:0%;
     height:100%;
     background-color: red;
 }
@@ -145,6 +146,4 @@ p#result_time{
     top: 0px;
     right: 0px;
 }
-p#result_time::after{
-    content: "s/100s"
-}
+
