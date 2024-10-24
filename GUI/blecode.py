@@ -187,12 +187,22 @@ async def get_IMU(dev_addrs : list, gettime : int, position : str):
         modelstyle = "svm"
         modelpath = "../model/neck_2_m.pkl"
         scalerpath = "../model/neck_2_s.pkl"
+    elif position == "shoulder":
+        modelstyle = "lstm"
+        modelpath = ""
+        scalerpath = ""
+        sampling_ms = 100
+        timestep_num = 100
     elif position == "hamstring":
         modelstyle = "lstm"
-        modelpath = "../model/hamstringr_50hz_m.keras"
-        scalerpath = "../model/hamstringr_50hz_s.pkl"
-        sampling_ms = 200
-        timestep_num = 50
+        modelpath = ""
+        scalerpath = ""
+        sampling_ms = 100
+        timestep_num = 100
+    elif position == "bridge":
+        modelstyle = "svm"
+        modelpath = ""
+        scalerpath = ""
     else:
         pass
 

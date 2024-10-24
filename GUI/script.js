@@ -346,10 +346,9 @@ const position_description = {
     4. 총 10회 반복합니다.<br>",
 
     "neck":
-    "0. 필요한 센서: A, B <br>\
+    "0. 필요한 센서: A, F <br>\
     1. 바른 자세를 유지합니다.<br>\
-    2. 목에 힘을 풀고, 한 손을 들어 반대편 머리를 잡고 당깁니다. <br>\
-    3. 실수로 스스로 목을 꺾어버리진 마세요.<br>",
+    2. 목에 힘을 풀고, 한 손을 들어 반대편 머리를 잡고 당깁니다. <br>",
 
     "bridge":
     "0. 필요한 센서: A, B, C, D, E <br>\
@@ -361,6 +360,6 @@ const position_essential_sensor =
 {
     "shoulder": ["B", "C", "F"],
     "hamstring": ["F", "G", "H"],
-    "neck": ["A", "B"],
+    "neck": ["A", "F"],
     "bridge": ["A", "B", "C", "D", "E"]
 };
