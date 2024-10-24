@@ -167,8 +167,10 @@ function dev_predict() {
             }
         }
     }
-    xhr2.open("GET", "http://localhost:8000/predict_get", true);
-    xhr2.send();
+    window.setTimeout(function(){
+        xhr2.open("GET", "http://localhost:8000/predict_get", true);
+        xhr2.send();
+    }, 2000)
 }
 
 // 자세추론 중에 결과 확인하기
