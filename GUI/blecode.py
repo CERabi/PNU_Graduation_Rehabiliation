@@ -189,20 +189,20 @@ async def get_IMU(dev_addrs : list, gettime : int, position : str):
         scalerpath = "../model/neck_2_s.pkl"
     elif position == "shoulder":
         modelstyle = "lstm"
-        modelpath = ""
-        scalerpath = ""
+        modelpath = "../model/shoulder_m.h5"
+        scalerpath = "../model/shoulder_s.pkl"
         sampling_ms = 100
         timestep_num = 100
     elif position == "hamstring":
         modelstyle = "lstm"
-        modelpath = ""
-        scalerpath = ""
+        modelpath = "../model/hamstringl_m.h5"
+        scalerpath = "../model/hamstringl_s.pkl"
         sampling_ms = 100
         timestep_num = 100
     elif position == "bridge":
         modelstyle = "svm"
-        modelpath = ""
-        scalerpath = ""
+        modelpath = "../model/bridge_m.pkl"
+        scalerpath = "../model/bridge_s.pkl"
     else:
         pass
 
@@ -216,7 +216,16 @@ async def get_IMU(dev_addrs : list, gettime : int, position : str):
             model = pickle.load(file)
             file.close()
         elif modelstyle == "lstm":
-            model = tf.keras.models.load_model(modelpath)
+            model = tf.keras.Sequential([
+                tf.keras.layers.LSTM(units = 50, return_sequences = True, input_shape = (100,18)),
+                tf.keras.layers.LSTM(units = 50),
+                tf.keras.layers.Dropout(0.1),
+                tf.keras.layers.Dense(50, activation = 'relu'),
+                tf.keras.layers.Dense(2, activation = 'softmax')
+            ])
+
+            model.load_weights(modelpath)
+            #model = tf.keras.models.load_model(modelpath)
         else:
             raise Exception("model style err")
         file = open(scalerpath, 'rb')
