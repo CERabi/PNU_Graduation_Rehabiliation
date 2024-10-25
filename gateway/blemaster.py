@@ -16,9 +16,6 @@ from sklearn.preprocessing import StandardScaler
 import tensorflow as tf
 
 
-#import warnings # 아오 시끄러워
-#warnings.filterwarnings('ignore')
-
 # BLE 서비스 characteristic uuid
 UUID_NOTIFY = "cafe0003-87a1-aade-bab0-c0ffeef3ae45"  # 센서로부터
 UUID_WRITE = "cafe0002-87a1-aade-bab0-c0ffeef3ae45"   # 센서로
