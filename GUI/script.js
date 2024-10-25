@@ -8,6 +8,7 @@ let dev_onlines = [];    // 전체 센서 상태
 let dev_now_online = [];// 현재 online 센서 이름
 
 //let now_predict = false; //현재 predict가 이루어지고 있는지?
+let predict_time = -1
 
 /* ----- Functions ----- */
 
@@ -104,7 +105,16 @@ function dev_scan() {
 
 //자세 추론
 function dev_predict() {
-    // 현재 추론 중이라면 리턴.
+    //시간이 정수가 아니면 리턴
+    predict_time = parseInt(document.getElementById("inp_predicttime").value);
+    if(predict_time == NaN){
+        add_alarm("exception","정수의 시간을 입력해주세요.");
+        return;
+    }
+    if(predict_time <= 0){
+        add_alarm("exception","0 이상의 시간을 입력해주세요.");
+        return;
+    }
 
     // 선택한 자세 읽음
     let position = document.getElementById("sel_rehab").value;
@@ -144,7 +154,7 @@ function dev_predict() {
     let senddata = {
         dev_list: connect_addrs,
         pos: position,
-        time: max_predict_time
+        time: predict_time
     }
     xhr.open("POST", "http://localhost:8000/predict_start", true);
     xhr.setRequestHeader('Content-type', 'application/json');
@@ -191,9 +201,9 @@ function show_predict(position) {
     xhr.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
             let received = JSON.parse(this.responseText);
-            if (received.type == "data" && ellapsed <= max_predict_time) {
+            if (received.type == "data" && ellapsed <= predict_time) {
                 //add_alarm(received.type, received.predict_result)
-                result_time.textContent = ellapsed.toFixed(1).toString() + "s/100s";
+                result_time.textContent = ellapsed.toFixed(1).toString() + "/" + predict_time.toString();
                 result_time_bar.style.width = ((ellapsed % 10 + 0.5) * 10).toString() + "%"
 
                 if (position_model_type["lstm"].includes(position)) { //반복동작
@@ -220,15 +230,15 @@ function show_predict(position) {
                     }
                 }
             }
-            else if (ellapsed > max_predict_time) { //시간 만료로 정지하는경우.
+            else if (ellapsed > predict_time) { //시간 만료로 정지하는경우.
                 window.clearInterval(timer);
                 let resultstr = ""
                 if (position_model_type["lstm"].includes(position)){
                     resultstr="반복동작" + finalscore.toString() + "회 성공!";
                 }
                 else{
-                    let svmscore = (((finalscore/2)/max_predict_time)*100).toFixed(2)
-                    resultstr="총 " + max_predict_time.toString() + "초 동안에 목표자세 총 "+ svmscore.toString() +"%만큼 달성!"
+                    let svmscore = (((finalscore/2)/predict_time)*100).toFixed(2)
+                    resultstr="총 " + predict_time.toString() + "초 동안에 목표자세 총 "+ svmscore.toString() +"%만큼 달성!"
                 }
                 result_final.textContent = resultstr;
                 document.getElementById("btn_predict").disabled = false;
@@ -320,7 +330,7 @@ function begin() {
 
 
 //운동 관련 변수들
-const max_predict_time = 30;
+//const max_predict_time = 30;
 
 const position_model_type = {
     "lstm": ["shoulder", "hamstring"],

@@ -50,6 +50,7 @@ div.dev span.dev_name{
 }
 div.dev span.dev_addr{
     color: gray;
+    font-size: 10pt;
 }
 /* online 글자 속성*/
 div.dev span.dev_isonline{
@@ -174,6 +175,11 @@ div#control_board button:disabled:hover{
 select#sel_rehab{
     background-color: white;
     height: 30px;
+    font-size: 14pt;
+}
+input#inp_predicttime{
+    height: 25px;
+    width: 40px;
     font-size: 14pt;
 }
 
