@@ -185,24 +185,24 @@ async def get_IMU(dev_addrs : list, gettime : int, position : str):
     # 운동자세마다 모델 경로 설정
     if position == "neck":
         modelstyle = "svm"
-        modelpath = "../model/neck_2_m.pkl"
-        scalerpath = "../model/neck_2_s.pkl"
+        modelpath = "./model/neck_2_m.pkl"
+        scalerpath = "./model/neck_2_s.pkl"
     elif position == "shoulder":
         modelstyle = "lstm"
-        modelpath = "../model/shoulder_m.h5"
-        scalerpath = "../model/shoulder_s.pkl"
+        modelpath = "./model/shoulder_m.h5"
+        scalerpath = "./model/shoulder_s.pkl"
         sampling_ms = 100
         timestep_num = 100
     elif position == "hamstring":
         modelstyle = "lstm"
-        modelpath = "../model/hamstringl_m.h5"
-        scalerpath = "../model/hamstringl_s.pkl"
+        modelpath = "./model/hamstringl_m.h5"
+        scalerpath = "./model/hamstringl_s.pkl"
         sampling_ms = 100
         timestep_num = 100
     elif position == "bridge":
         modelstyle = "svm"
-        modelpath = "../model/bridge_m.pkl"
-        scalerpath = "../model/bridge_s.pkl"
+        modelpath = "./model/bridge_m.pkl"
+        scalerpath = "./model/bridge_s.pkl"
     else:
         pass
 
