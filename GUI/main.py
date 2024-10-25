@@ -33,6 +33,7 @@ app.add_middleware(
 class DeviceInfo(BaseModel):
     dev_list : list
     pos : str
+    time : int
 
 
 
@@ -99,7 +100,7 @@ async def predict_start(item : DeviceInfo):
         return {"type"      :"message",
                 "message"   :"아직 사용할 수 없음!"}
     try:
-        await blecode.get_IMU(item.dev_list, 30, item.pos)
+        await blecode.get_IMU(item.dev_list, item.time, item.pos)
         return {"type"      :"complete",
                 "message"   :"자세 추론이 끝났습니다."}
     

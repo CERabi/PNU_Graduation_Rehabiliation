@@ -94,7 +94,8 @@ function dev_scan() {
     }
     let senddata = {
         dev_list: dev_addrs,
-        pos: "none"
+        pos: "none",
+        time: 0
     }
     xhr.open("POST", "http://localhost:8000/scan", true);
     xhr.setRequestHeader('Content-type', 'application/json');
@@ -142,7 +143,8 @@ function dev_predict() {
     }
     let senddata = {
         dev_list: connect_addrs,
-        pos: position
+        pos: position,
+        time: max_predict_time
     }
     xhr.open("POST", "http://localhost:8000/predict_start", true);
     xhr.setRequestHeader('Content-type', 'application/json');
@@ -222,7 +224,7 @@ function show_predict(position) {
                 window.clearInterval(timer);
                 let resultstr = ""
                 if (position_model_type["lstm"].includes(position)){
-                    resultstr="총 10회의 반복동작 중 " + finalscore.toString() + "회 성공!";
+                    resultstr="반복동작" + finalscore.toString() + "회 성공!";
                 }
                 else{
                     let svmscore = (((finalscore/2)/max_predict_time)*100).toFixed(2)
