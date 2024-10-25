@@ -1,0 +1,6 @@
+dependencies.lock
+build/
+*sensor.csv
+tempfile.csv
+__pycache__/
+GUI/images/example.bmp
