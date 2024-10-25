@@ -332,7 +332,7 @@ const position_title = {
 };
 const position_description = {
     "shoulder":
-    "0. 필요한 센서: B(왼손목) C(오른손목) F(배꼽) <br>\
+    "0. 필요한 센서: C(왼손목) E(오른손목) F(배꼽) <br>\
     1. 양 손을 깍지끼고 양팔을 아래로 뻗습니다.<br>\
     2. 5초 동안 양 팔을 편 채 위로 올립니다.<br>\
     3. 다음 5초 동안 아래로 내립니다.<br>\
@@ -358,7 +358,7 @@ const position_description = {
 }
 const position_essential_sensor =
 {
-    "shoulder": ["B", "C", "F"],
+    "shoulder": ["C", "E", "F"],
     "hamstring": ["F", "G", "H"],
     "neck": ["A", "F"],
     "bridge": ["A", "B", "C", "D", "E"]
