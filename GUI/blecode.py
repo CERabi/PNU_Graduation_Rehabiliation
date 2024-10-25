@@ -1,4 +1,4 @@
-# 분점
+# BLE 관련 코드들
 
 # -------- 라이브러리 ----------#
 
@@ -18,12 +18,12 @@ import tensorflow as tf
 # -------- 변수들 ----------#
 
 # 전역 상태변수
-ble_status = "ready" # ready(일반), wait(기다림), on(실행 중), disconnected(뭐가 연결 해제됨)
-predict_result = "none"
+ble_status = "ready"      # ready(일반), wait(기다림), on(실행 중), disconnected(뭐가 연결 해제됨)
+predict_result = "none"   # 추론 결과를 여기에다 기록
 
 # BLE 서비스 characteristic uuid
-UUID_NOTIFY = "cafe0003-87a1-aade-bab0-c0ffeef3ae45"  # 센서로부터
-UUID_WRITE = "cafe0002-87a1-aade-bab0-c0ffeef3ae45"   # 센서로
+UUID_NOTIFY = "cafe0003-87a1-aade-bab0-c0ffeef3ae45"  # 센서->게이트웨이
+UUID_WRITE = "cafe0002-87a1-aade-bab0-c0ffeef3ae45"   # 게이트웨이->센서
 
 # 같은 시간의 데이터를 한 행에 묶기 위한 변수들
 frames = []                                 # 전체 데이터, 이후에 CSV파일로 저장. list(list) 형태
@@ -68,11 +68,11 @@ async def scan_device(dev_list : list):
             dev_online[d.address] = True
     
     return list(dev_online.values())
-    # 검색 완료된 장치 목록 출력?
+    
 
 # 같은 시간의 데이터를 한 행에 묶기 위한 작업.
 async def make_frame(data):
-    # 장치 이름, 데이터 시간, 데이터
+    # 장치 이름, 데이터 시간, 데이터로 분리
     devname = data[0].decode()
     devtime = data[1]
     devdata = data[2:]
@@ -116,7 +116,7 @@ async def make_frame(data):
             elif modelstyle == "lstm":
                 inp = np.array(frame[1:])
                 sequence = np.append(sequence, inp)
-                if len(sequence) == len(inp) * timestep_num: #200개의 프레임이 모인다면...
+                if len(sequence) == len(inp) * timestep_num: # 한 sequence에 (200개의) 프레임이 다 모였다면...
                     print("{:.2f}s|".format(devtime/1000))                  
                     std = scaler.transform(sequence.reshape(-1,len(inp)))
                     res = model.predict(std.reshape(-1,timestep_num,len(inp)))
@@ -161,7 +161,6 @@ async def write_message(client : BleakClient, time, message):
     await client.write_gatt_char(UUID_WRITE, message) # 송신
 
 # IMU 데이터 수집
-# 장치 센싱 중에 연결 해제되면 exception 발생시키기?
 async def get_IMU(dev_addrs : list, gettime : int, position : str):
 
     # 상태를 wait로--값을 받을 수 있을 때까지 대기 유도
@@ -182,7 +181,7 @@ async def get_IMU(dev_addrs : list, gettime : int, position : str):
     sampling_ms = 50    #기본값
     timestep_num = 200
 
-    # 운동자세마다 모델 경로 설정
+    # 운동자세마다 모델 경로, 파라미터 설정
     if position == "neck":
         modelstyle = "svm"
         modelpath = "./model/neck_2_m.pkl"
@@ -235,8 +234,6 @@ async def get_IMU(dev_addrs : list, gettime : int, position : str):
         print("모델 파일을 불러오는 과정에서 문제 발생")
         raise e
     
-    # 센서 개수 안 맞으면... -> 클라이언트에서
-
     # 센싱 데이터 관리용 변수 초기화
     global frames
     global max_frame_dev_num
@@ -259,7 +256,7 @@ async def get_IMU(dev_addrs : list, gettime : int, position : str):
         clients.append(BleakClient(addr, disconnected_callback=on_disconnect))
     
     try:
-        # 장치 차례로 연결 시도(동시에 연결하게도 가능할 듯?)
+        # 장치 차례로 연결 시도
         for client in clients:
             await client.connect()
             print("\t센서 연결됨:\tAddress={}".format(client.address))
@@ -306,9 +303,3 @@ async def get_IMU(dev_addrs : list, gettime : int, position : str):
         for client in clients:
             await client.disconnect()
         ble_status = "ready"
-
-        # frames 잘 만들어지나?? ㅇㅇ
-        # print(frames)
-
-        # ble_status
-        # ready(이때만 추론 시작할 수 있게 해야)->wait->on(->disconnected 도중에 값 바뀜)->ready(센서 해제되면 다시 ready)

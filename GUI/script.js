@@ -1,14 +1,14 @@
 window.addEventListener("load", begin, false);
 
 
-let dev_names = [];      // 전체 센서
-let dev_addrs = [];      // 전체 센서 주소
-let dev_names_to_addrs = {}; // 센서 이름:센서 주소 매칭
-let dev_onlines = [];    // 전체 센서 상태
-let dev_now_online = [];// 현재 online 센서 이름
+let dev_names = [];            // 전체 센서
+let dev_addrs = [];            // 전체 센서 주소
+let dev_names_to_addrs = {};   // 센서 이름:센서 주소 매칭
+let dev_onlines = [];          // 전체 센서 상태
+let dev_now_online = [];       // 현재 online 센서 이름
 
 //let now_predict = false; //현재 predict가 이루어지고 있는지?
-let predict_time = -1
+let predict_time = -1          // 측정할 시간
 
 /* ----- Functions ----- */
 
@@ -111,6 +111,7 @@ function dev_predict() {
         add_alarm("exception","정수의 시간을 입력해주세요.");
         return;
     }
+    //0보다 작거나 같아도 리턴
     if(predict_time <= 0){
         add_alarm("exception","0 이상의 시간을 입력해주세요.");
         return;
@@ -144,6 +145,7 @@ function dev_predict() {
     })
 
     // predict_start 호출
+    // 서버측에서 추론 시작함
     let xhr = new XMLHttpRequest()
     xhr.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
@@ -160,7 +162,8 @@ function dev_predict() {
     xhr.setRequestHeader('Content-type', 'application/json');
     xhr.send(JSON.stringify(senddata));
 
-    // wait를 위한 predict_get 호출
+    // predict_get 호출
+    // 서버측에서 추론 준비가 끝나면 wait_end라는 응답을 돌려줌
     let xhr2 = new XMLHttpRequest()
     xhr2.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
@@ -179,6 +182,8 @@ function dev_predict() {
             }
         }
     }
+    // predict_start 요청이 predict_get보다 늦어지는 경우가 있어,
+    // predict_get 요청을 약간의 delay후 전송
     window.setTimeout(function(){
         xhr2.open("GET", "http://localhost:8000/predict_get", true);
         xhr2.send();
@@ -187,9 +192,9 @@ function dev_predict() {
 
 // 자세추론 중에 결과 확인하기
 function show_predict(position) {
-    //시간 경과
-    let ellapsed = 0;
-    let finalscore = 0;
+    let ellapsed = 0;       //시간 경과 확인
+    let finalscore = 0;     //점수 기록용
+
     let result_time = document.getElementById("result_time");
     let result_time_bar = document.getElementById("result_time_graph_bar");
     let result_text = document.getElementById("result_text");
@@ -203,12 +208,13 @@ function show_predict(position) {
             let received = JSON.parse(this.responseText);
             if (received.type == "data" && ellapsed <= predict_time) {
                 //add_alarm(received.type, received.predict_result)
+                // 흐른 시간을 계산하여 progress bar에 나타냄
                 result_time.textContent = ellapsed.toFixed(1).toString() + "/" + predict_time.toString();
                 result_time_bar.style.width = ((ellapsed % 10 + 0.5) * 10).toString() + "%"
 
                 if (position_model_type["lstm"].includes(position)) { //반복동작
                     if (ellapsed % 10 == 0) { // 10초가 지날 때마다
-                        //결과 등록
+                        //결과 표시
                         if (received.predict_result == "True") {
                             result_text.textContent += " ...O";
                             finalscore += 1;
@@ -216,9 +222,7 @@ function show_predict(position) {
                         else {
                             result_text.textContent += " ...X";
                         }
-
                     }
-
                 }
                 else {  //특정동작
                     if (received.predict_result == "True") {
@@ -230,7 +234,7 @@ function show_predict(position) {
                     }
                 }
             }
-            else if (ellapsed > predict_time) { //시간 만료로 정지하는경우.
+            else if (ellapsed > predict_time) { //측정 시간 만료로 정지하는경우에 결과 표시
                 window.clearInterval(timer);
                 let resultstr = ""
                 if (position_model_type["lstm"].includes(position)){
@@ -244,7 +248,7 @@ function show_predict(position) {
                 document.getElementById("btn_predict").disabled = false;
                 return;
             }
-            else { //불상의 이유로 정지함
+            else { //알 수 없는 이유로 정지함
                 add_alarm(received.type, received.message)
                 window.clearInterval(timer);
                 result_final.textContent = "문제가 발생하여 자세 추론이 올바르게 이루어지지 못함.";
@@ -254,6 +258,7 @@ function show_predict(position) {
         }
     }
 
+    //0.5초마다 요청을 보내 추론 결과를 갱신
     var timer = window.setInterval(function () {
         xhr.open("GET", "http://localhost:8000/predict_get", true);
         xhr.send();
@@ -305,6 +310,7 @@ function btn_predict() {
     dev_predict()
 }
 function remove_alarm_all(e){
+    // 알람 모두 제거하는 버튼
     let parent = e.parentElement;
     parent.replaceChildren();
     parent.appendChild(e)
@@ -318,13 +324,13 @@ function example_refresh() {
     document.getElementById("pos_title").textContent = position_title[position];
     document.getElementById("pos_description").innerHTML = position_description[position];
     document.getElementById("status_str").textContent = "";
-
     // 결과창 안 보이게 설정
     document.getElementById("result").style.visibility = "hidden";
 }
 
 // document 로드된 후에 시작
 function begin() {
+    //시작 시 먼저 장치 정보부터 받아오기.
     get_device_information();
 }
 
@@ -332,16 +338,19 @@ function begin() {
 //운동 관련 변수들
 //const max_predict_time = 30;
 
+// 추론모델마다 속한 운동들
 const position_model_type = {
     "lstm": ["shoulder", "hamstring"],
     "svm": ["neck", "bridge"]
 }
+// 자세한 운동자세 명칭
 const position_title = {
     "shoulder": "Assisted shoulder flexion",
     "hamstring": "Hamstring stretch",
     "neck": "Neck side extension",
     "bridge": "Bridge stretch"
 };
+// 운동자세 자세히
 const position_description = {
     "shoulder":
     "0. 필요한 센서: C(왼손목) E(오른손목) F(배꼽) <br>\
@@ -353,14 +362,14 @@ const position_description = {
     "hamstring":
     "0. 필요한 센서: F(배꼽) G(무릎 위) H(발목 위) <br>\
     1. 의자에 앉아 허리를 곧게 폅니다. <br>\
-    2. 5초간 (왼쪽) 종아리를 서서히 폅니다. <br>\
-    3. 다음 5초간 (왼쪽) 종아리를 서서히 내립니다.<br>\
+    2. 5초간 왼쪽 종아리를 서서히 폅니다. <br>\
+    3. 다음 5초간 왼쪽 종아리를 서서히 내립니다.<br>\
     4. 총 10회 반복합니다.<br>",
 
     "neck":
     "0. 필요한 센서: A, F <br>\
     1. 바른 자세를 유지합니다.<br>\
-    2. 목에 힘을 풀고, 한 손을 들어 반대편 머리를 잡고 당깁니다. <br>",
+    2. 목에 힘을 풀고, 한 손을 들어 반대편 쪽의 머리를 잡고 당깁니다. <br>",
 
     "bridge":
     "0. 필요한 센서: A, B, C, D, E <br>\
